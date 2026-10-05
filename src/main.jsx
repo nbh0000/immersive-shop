@@ -25,6 +25,15 @@ const products = [
   { id: '05', name: 'Solace Fold', category: 'OBJECT / 05', material: 'soft metal', accent: '#b8d8c9', tone: 'mint', price: '₩ 274,000' },
 ];
 
+const garmentCascadeItems = [
+  { id: 'flat-01', image: products[0].image, label: 'KNIT / 01', className: 'garment-cascade__card--one' },
+  { id: 'worn-01', image: products[0].modelImage, label: 'WORN / 01', className: 'garment-cascade__card--two is-model' },
+  { id: 'flat-02', image: products[0].image, label: 'DETAIL / 01', className: 'garment-cascade__card--three' },
+  { id: 'worn-02', image: products[0].modelImage, label: 'FORM / 01', className: 'garment-cascade__card--four is-model' },
+  { id: 'flat-03', image: products[0].image, label: 'FIBER / 01', className: 'garment-cascade__card--five' },
+  { id: 'worn-03', image: products[0].modelImage, label: 'STUDY / 01', className: 'garment-cascade__card--six is-model' },
+];
+
 const chapters = [
   { label: '01 / MATERIAL', title: 'Before the object', copy: 'A quiet room of mineral, air and raw fiber.' },
   { label: '02 / GROWTH', title: 'What the cloth remembers', copy: 'Flax, cotton and ramie moving through the light.' },
@@ -241,7 +250,7 @@ function ProductObject({ tone }) {
   );
 }
 
-function ProductMedia({ product, side, style, onOpen }) {
+function ProductMedia({ product, side, style, onOpen, isActive = false }) {
   return (
     <article className={`product-media product-media--${side} ${product.image ? 'product-media--static' : ''}`} style={style}>
       <button
@@ -261,7 +270,7 @@ function ProductMedia({ product, side, style, onOpen }) {
         ) : (
           <ProductObject tone={product.tone} />
         )}
-        <div className="product-media__ink" aria-hidden="true" />
+        {isActive && <video className="product-media__ink" src={asset('ink-bloom-reveal.mp4')} autoPlay muted playsInline aria-hidden="true" />}
         <div className="product-media__line" />
       </button>
       <div className="product-media__caption">
@@ -269,6 +278,36 @@ function ProductMedia({ product, side, style, onOpen }) {
         <span>{product.material}</span>
       </div>
     </article>
+  );
+}
+
+function GarmentCascade({ scrollProgress }) {
+  const [timeRevealCount, setTimeRevealCount] = useState(1);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTimeRevealCount((count) => Math.min(garmentCascadeItems.length, count + 1));
+    }, 2400);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const scrollRevealCount = Math.min(garmentCascadeItems.length, 1 + Math.floor(scrollProgress * 5));
+  const visibleCount = Math.max(timeRevealCount, scrollRevealCount);
+
+  return (
+    <div className="garment-cascade" aria-hidden="true">
+      {garmentCascadeItems.map((item, index) => {
+        const isVisible = index < visibleCount;
+        return (
+          <figure className={`garment-cascade__card ${item.className} ${isVisible ? 'is-visible' : ''}`} key={item.id}>
+            <div className="garment-cascade__paper" />
+            <img src={item.image} alt="" />
+            {isVisible && <video className="garment-cascade__ink-film" src={asset('ink-bloom-reveal.mp4')} autoPlay muted playsInline />}
+            <figcaption>{item.label}</figcaption>
+          </figure>
+        );
+      })}
+    </div>
   );
 }
 
@@ -665,12 +704,14 @@ function App() {
               const translateY = offset * 7;
               return (
                 <div className={`product-stage__item ${index === activeIndex ? 'is-active' : ''}`} key={product.id} style={{ opacity, transform: `translate3d(0, ${translateY}%, 0) scale(${scale})`, zIndex }}>
-                  <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
-                  <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
+                  <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} isActive={index === activeIndex} />
+                  <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} isActive={index === activeIndex} />
                 </div>
               );
             })}
           </div>
+
+          <GarmentCascade scrollProgress={scrollProgress} />
 
           <div className="scene-footer">
             <div className="scroll-cue"><span>SCROLL TO DRIFT</span><i /></div>

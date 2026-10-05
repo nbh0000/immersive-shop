@@ -90,24 +90,42 @@ a { text-decoration: none; }
 
 .product-stage { position: absolute; inset: 0; z-index: 4; pointer-events: none; perspective: 1600px; }
 .product-stage__item { position: absolute; inset: 0; transition: opacity .28s ease, transform .28s cubic-bezier(.22,.8,.24,1); transform-style: preserve-3d; }
+.garment-cascade { position: absolute; z-index: 3; inset: 0; overflow: hidden; pointer-events: none; }
+.garment-cascade__card { --cascade-transform: translate3d(0, 0, 0) rotate(0deg); position: absolute; width: clamp(126px, 12vw, 190px); aspect-ratio: .72; margin: 0; opacity: 0; transform: var(--cascade-transform); transform-origin: center; filter: saturate(.72) contrast(1.02); will-change: transform, opacity; }
+.garment-cascade__card.is-visible { animation: garment-cascade-in 1.25s cubic-bezier(.23, 1, .32, 1) both; }
+.garment-cascade__paper { position: absolute; z-index: 1; inset: 4% 2% 7%; background: linear-gradient(145deg, rgba(244, 240, 227, .74), rgba(201, 196, 184, .4)); clip-path: polygon(5% 2%, 96% 0, 100% 8%, 97% 95%, 90% 100%, 3% 96%, 0 6%); box-shadow: 0 22px 48px rgba(65, 55, 46, .12); }
+.garment-cascade__card::after { content: ''; position: absolute; z-index: 2; inset: -7% -15% -8%; background: center / 170% 220% no-repeat url('../assets/ink-bloom.png'); mix-blend-mode: multiply; opacity: .12; filter: grayscale(1) contrast(1.2) brightness(1.2); transform: rotate(-2deg); }
+.garment-cascade__card img { position: absolute; z-index: 2; inset: 12% 8% 14%; width: 84%; height: 74%; object-fit: contain; mix-blend-mode: multiply; opacity: .76; filter: saturate(.78) contrast(1.03); }
+.garment-cascade__card.is-model img { inset: 9% 6% 9%; width: 88%; height: 82%; object-fit: cover; mix-blend-mode: screen; opacity: .3; filter: grayscale(.45) contrast(.94) brightness(1.04); }
+.garment-cascade__ink-film { position: absolute; z-index: 3; inset: -12% -17%; width: 134%; height: 132%; object-fit: cover; mix-blend-mode: multiply; opacity: .62; pointer-events: none; animation: garment-ink-film 1.7s cubic-bezier(.23, 1, .32, 1) both; }
+.garment-cascade__card figcaption { position: absolute; z-index: 4; right: 9%; bottom: 2%; color: rgba(44, 39, 34, .52); font: 7px 'DM Mono', monospace; letter-spacing: .12em; text-transform: uppercase; }
+.garment-cascade__card--one { --cascade-transform: translate3d(0, 0, 0) rotate(-8deg); top: 20%; left: 26%; }
+.garment-cascade__card--two { --cascade-transform: translate3d(0, 0, 0) rotate(6deg); top: 28%; left: 37%; }
+.garment-cascade__card--three { --cascade-transform: translate3d(0, 0, 0) rotate(9deg); top: 17%; right: 27%; }
+.garment-cascade__card--four { --cascade-transform: translate3d(0, 0, 0) rotate(-6deg); top: 42%; right: 23%; }
+.garment-cascade__card--five { --cascade-transform: translate3d(0, 0, 0) rotate(-11deg); bottom: 14%; left: 39%; }
+.garment-cascade__card--six { --cascade-transform: translate3d(0, 0, 0) rotate(7deg); right: 37%; bottom: 10%; }
 .product-media { --pointer-media-shift-x: 0px; --pointer-media-shift-y: 0px; --pointer-rotate-x: 0deg; --pointer-rotate-y: 0deg; position: absolute; top: 50%; width: clamp(205px, 18vw, 330px); pointer-events: auto; transform-style: preserve-3d; will-change: transform; transition: transform .18s cubic-bezier(.23, 1, .32, 1); }
 .product-media--left { left: clamp(31px, 8vw, 140px); transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(14deg + var(--pointer-rotate-y))) rotateZ(-1.5deg); }
 .product-media--right { right: clamp(31px, 8vw, 140px); transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(-14deg + var(--pointer-rotate-y))) rotateZ(1.5deg); }
 .product-media__frame { --pointer-frame-shift-x: 0px; --pointer-frame-shift-y: 0px; --pointer-frame-rotate-x: 0deg; --pointer-frame-rotate-y: 0deg; position: relative; display: block; width: 100%; height: clamp(310px, 43vh, 570px); padding: 0; overflow: hidden; border: 1px solid rgba(225, 231, 255, .22); background: linear-gradient(145deg, rgba(18, 25, 49, .62), rgba(9, 11, 18, .14)); color: inherit; text-align: left; box-shadow: inset 0 0 40px rgba(154, 178, 255, .08), 0 25px 80px rgba(0, 0, 0, .22); backdrop-filter: blur(11px); transform: translate3d(var(--pointer-frame-shift-x), var(--pointer-frame-shift-y), 0) rotateX(var(--pointer-frame-rotate-x)) rotateY(var(--pointer-frame-rotate-y)); transform-style: preserve-3d; will-change: transform; transition: transform .28s cubic-bezier(.23, 1, .32, 1); }
-.product-media--left .product-media__frame { border-color: rgba(63, 53, 45, .25); background: linear-gradient(145deg, rgba(248, 246, 237, .96), rgba(214, 210, 199, .82)); box-shadow: inset 0 0 40px rgba(111, 91, 72, .1), 0 25px 80px rgba(75, 62, 49, .16); }
+.product-media--left .product-media__frame { isolation: isolate; overflow: visible; border: 0; background: transparent; box-shadow: none; }
+.product-media--left .product-media__frame::before { content: ''; position: absolute; z-index: 0; inset: 7px 9px 9px; background: linear-gradient(138deg, rgba(248, 246, 236, .94), rgba(224, 218, 204, .84)); clip-path: polygon(3% 1%, 96% 0, 100% 4%, 98% 96%, 94% 100%, 2% 97%, 0 5%); box-shadow: 0 24px 54px rgba(75, 62, 49, .14); }
+.product-media--left .product-media__frame::after { content: ''; position: absolute; z-index: 0; inset: -10px -18px -14px; background: center / 175% 230% no-repeat url('../assets/ink-bloom.png'); mix-blend-mode: multiply; opacity: .24; filter: grayscale(1) contrast(1.18) brightness(1.16); clip-path: polygon(8% 4%, 92% 0, 100% 12%, 96% 91%, 88% 100%, 5% 96%, 0 18%); transform: rotate(-1.2deg); }
 .product-media__frame.is-clickable { cursor: zoom-in; }
-.product-media__frame.is-clickable:hover { border-color: rgba(63, 53, 45, .52); }
+.product-media__frame.is-clickable:hover { border-color: transparent; }
 .product-media--static .product-media__frame { backdrop-filter: none; }
 .product-media--right .product-media__frame { height: clamp(260px, 34vh, 450px); margin-top: 13vh; }
 .product-media__noise { position: absolute; inset: 0; opacity: .15; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.48'/%3E%3C/svg%3E"); mix-blend-mode: screen; }
-.product-media__label { position: absolute; z-index: 2; top: 14px; left: 15px; right: 15px; display: flex; justify-content: space-between; font: 8px 'DM Mono', monospace; letter-spacing: .11em; color: rgba(229, 234, 252, .62); }
+.product-media__label { position: absolute; z-index: 3; top: 14px; left: 15px; right: 15px; display: flex; justify-content: space-between; font: 8px 'DM Mono', monospace; letter-spacing: .11em; color: rgba(229, 234, 252, .62); }
 .product-media--left .product-media__label { color: rgba(49, 43, 38, .62); }
-.product-media__ink { position: absolute; z-index: 3; inset: -18% -26%; pointer-events: none; background: center / 100% 100% no-repeat url('../assets/ink-bloom.png'); mix-blend-mode: multiply; opacity: 0; filter: grayscale(1) contrast(1.3) brightness(1.18); transform: translate3d(-8%, 2%, 0) rotate(-4deg) scale(.74); transform-origin: 45% 50%; }
+.product-media__ink { position: absolute; z-index: 2; inset: -18% -26%; width: 152%; height: 136%; pointer-events: none; background: center / 100% 100% no-repeat url('../assets/ink-bloom.png'); mix-blend-mode: multiply; opacity: 0; object-fit: cover; filter: grayscale(1) contrast(1.3) brightness(1.18); transform: translate3d(-8%, 2%, 0) rotate(-4deg) scale(.74); transform-origin: 45% 50%; }
 .product-stage__item.is-active .product-media__ink { animation: ink-bloom-spread 1.35s cubic-bezier(.23, 1, .32, 1) both; }
 .product-stage__item.is-active .product-media--left .product-media__photo { animation: product-ink-reveal 1.35s cubic-bezier(.23, 1, .32, 1) both; }
 .product-media__line { position: absolute; z-index: 4; bottom: 24px; left: 15px; width: 31px; height: 1px; background: var(--product-accent); box-shadow: 0 0 13px var(--product-accent); }
 .product-media__caption { display: flex; justify-content: space-between; align-items: baseline; margin-top: 13px; font-size: 11px; letter-spacing: -.01em; }
-.product-media__photo { position: absolute; inset: 35px 12px 12px; width: calc(100% - 24px); height: calc(100% - 47px); object-fit: contain; background: #efede5; filter: saturate(.78) contrast(1.02); }
+.product-media__photo { position: absolute; z-index: 1; inset: 35px 12px 12px; width: calc(100% - 24px); height: calc(100% - 47px); object-fit: contain; background: transparent; filter: saturate(.78) contrast(1.02); }
+.product-media--left .product-media__photo { mix-blend-mode: multiply; }
 .product-media__caption strong { color: #24242a; font-weight: 500; }
 .product-media__caption span { color: rgba(32, 34, 41, .56); font: 8px 'DM Mono', monospace; text-transform: uppercase; }
 
@@ -205,6 +223,8 @@ a { text-decoration: none; }
 @keyframes scan { 0% { transform: translateX(-20px); } 50%, 100% { transform: translateX(50px); } }
 @keyframes ink-bloom-spread { 0% { opacity: .76; transform: translate3d(-8%, 2%, 0) rotate(-4deg) scale(.74); } 38% { opacity: .54; transform: translate3d(0, 0, 0) rotate(-1deg) scale(1.03); } 100% { opacity: 0; transform: translate3d(7%, -2%, 0) rotate(2deg) scale(1.18); } }
 @keyframes product-ink-reveal { 0% { opacity: .08; filter: saturate(.25) contrast(1.4) blur(7px); transform: scale(1.08); } 42% { opacity: .82; filter: saturate(.62) contrast(1.14) blur(1.5px); transform: scale(1.025); } 100% { opacity: 1; filter: saturate(.78) contrast(1.02) blur(0); transform: scale(1); } }
+@keyframes garment-cascade-in { 0% { opacity: 0; transform: translate3d(0, 18px, 0) scale(.82) rotate(-3deg); } 42% { opacity: .72; } 100% { opacity: .58; transform: var(--cascade-transform); } }
+@keyframes garment-ink-film { 0% { opacity: .78; transform: translate3d(-7%, 2%, 0) scale(.72) rotate(-4deg); } 45% { opacity: .46; transform: translate3d(0, 0, 0) scale(1.02) rotate(-1deg); } 100% { opacity: 0; transform: translate3d(8%, -2%, 0) scale(1.18) rotate(2deg); } }
 
 @media (max-width: 850px) {
   .site-header, .scene-topline, .scene-footer { left: 17px; right: 17px; }
@@ -220,6 +240,7 @@ a { text-decoration: none; }
   .chapter-copy strong { font-size: 14px; }
   .chapter-copy p { font-size: 9px; }
   .product-media { width: 31vw; min-width: 126px; }
+  .garment-cascade__card { width: 25vw; min-width: 88px; }
   .product-media--left { left: 5vw; transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(10deg + var(--pointer-rotate-y))) rotateZ(-2deg) scale(.92); }
   .product-media--right { right: 5vw; transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(-10deg + var(--pointer-rotate-y))) rotateZ(2deg) scale(.92); }
   .product-media--right .product-media__frame { margin-top: 11vh; }
