@@ -25,15 +25,6 @@ const products = [
   { id: '05', name: 'Solace Fold', category: 'OBJECT / 05', material: 'soft metal', accent: '#b8d8c9', tone: 'mint', price: '₩ 274,000' },
 ];
 
-const garmentCascadeItems = [
-  { id: 'flat-01', image: products[0].image, label: 'KNIT / 01', className: 'garment-cascade__card--one' },
-  { id: 'worn-01', image: products[0].modelImage, label: 'WORN / 01', className: 'garment-cascade__card--two is-model' },
-  { id: 'flat-02', image: products[0].image, label: 'DETAIL / 01', className: 'garment-cascade__card--three' },
-  { id: 'worn-02', image: products[0].modelImage, label: 'FORM / 01', className: 'garment-cascade__card--four is-model' },
-  { id: 'flat-03', image: products[0].image, label: 'FIBER / 01', className: 'garment-cascade__card--five' },
-  { id: 'worn-03', image: products[0].modelImage, label: 'STUDY / 01', className: 'garment-cascade__card--six is-model' },
-];
-
 const chapters = [
   { label: '01 / MATERIAL', title: 'Before the object', copy: 'A quiet room of mineral, air and raw fiber.' },
   { label: '02 / GROWTH', title: 'What the cloth remembers', copy: 'Flax, cotton and ramie moving through the light.' },
@@ -278,36 +269,6 @@ function ProductMedia({ product, side, style, onOpen, isActive = false }) {
         <span>{product.material}</span>
       </div>
     </article>
-  );
-}
-
-function GarmentCascade({ scrollProgress }) {
-  const [timeRevealCount, setTimeRevealCount] = useState(1);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setTimeRevealCount((count) => Math.min(garmentCascadeItems.length, count + 1));
-    }, 2400);
-    return () => window.clearInterval(timer);
-  }, []);
-
-  const scrollRevealCount = Math.min(garmentCascadeItems.length, 1 + Math.floor(scrollProgress * 5));
-  const visibleCount = Math.max(timeRevealCount, scrollRevealCount);
-
-  return (
-    <div className="garment-cascade" aria-hidden="true">
-      {garmentCascadeItems.map((item, index) => {
-        const isVisible = index < visibleCount;
-        return (
-          <figure className={`garment-cascade__card ${item.className} ${isVisible ? 'is-visible' : ''}`} key={item.id}>
-            <div className="garment-cascade__paper" />
-            <img src={item.image} alt="" />
-            {isVisible && <video className="garment-cascade__ink-film" src={asset('ink-bloom-reveal.mp4')} autoPlay muted playsInline />}
-            <figcaption>{item.label}</figcaption>
-          </figure>
-        );
-      })}
-    </div>
   );
 }
 
@@ -662,7 +623,6 @@ function App() {
         >
           <div className="scene-background" aria-hidden="true" style={{ '--world-progress': worldProgress }}>
             <div className="scene-background__texture" />
-            <img className="scene-background__textile" src={asset('textile-wordmark-sculpture.png')} alt="" />
             <WorldTrack modifier="world-track--backdrop" progress={worldProgress} />
             <WorldTrack modifier="world-track--reveal" progress={worldProgress} />
             <div className="scene-background__veil" />
@@ -680,12 +640,14 @@ function App() {
           </div>
 
           <div className="scene-copy">
-            <h1 aria-label="Where Ware Wear Here">
+            <h1 className="scene-copy__accessible-title">Where Ware Wear Here</h1>
+            <img className="scene-copy__textile-wordmark" src={asset('textile-where-ware-wear-here.png')} alt="" aria-hidden="true" />
+            <span className="scene-copy__fallback" aria-hidden="true">
               <span>Where</span>
               <span>Ware</span>
               <span>Wear</span>
               <span>Here</span>
-            </h1>
+            </span>
           </div>
 
           <div className="chapter-copy">
@@ -710,8 +672,6 @@ function App() {
               );
             })}
           </div>
-
-          <GarmentCascade scrollProgress={scrollProgress} />
 
           <div className="scene-footer">
             <div className="scroll-cue"><span>SCROLL TO DRIFT</span><i /></div>
