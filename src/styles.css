@@ -41,7 +41,7 @@ a { text-decoration: none; }
 .scene-background, .scene-background > * { position: absolute; inset: 0; }
 .scene-background { z-index: -1; background: #efede5; pointer-events: none; }
 .scene-background__texture { z-index: 0; background: #efede5; transform: translateZ(-18px); transform-origin: center; }
-.scene-background__textile { z-index: 2; top: 6%; left: 50%; width: min(560px, 58vw); height: 88%; object-fit: contain; opacity: .38; mix-blend-mode: screen; filter: saturate(.72) contrast(1.08) brightness(1.08); transform: translateX(-50%) rotate(-4deg) translateZ(-10px); }
+.scene-background__textile { z-index: 2; top: 6%; left: 50%; width: min(560px, 58vw); height: 88%; object-fit: contain; opacity: .48; mix-blend-mode: screen; filter: saturate(.84) contrast(1.16) brightness(1.1); transform: translateX(-50%) rotate(-4deg) translateZ(-10px); }
 .scene-background__texture::after { display: none; }
 .world-track-viewport { z-index: 1; overflow: hidden; }
 .world-track { --pointer-shift-x: 0px; --pointer-shift-y: 0px; --pointer-tilt: 0deg; --pointer-tilt-x: 0deg; --pointer-tilt-y: 0deg; position: absolute; top: 0; right: 0; left: 0; height: 500%; transform: translate3d(var(--pointer-shift-x), calc(var(--world-progress) * -95% + var(--pointer-shift-y)), 0) rotateX(var(--pointer-tilt-x)) rotateY(var(--pointer-tilt-y)) rotateZ(var(--pointer-tilt)) scale(1.08); transform-origin: center top; transform-style: preserve-3d; will-change: transform; }
@@ -206,7 +206,7 @@ a { text-decoration: none; }
   .scene-topline { top: 67px; font-size: 7px; }
   .scene-topline span:last-child { display: none; }
   .scene-copy { top: 17%; width: 78vw; }
-  .scene-background__textile { top: 8%; width: 92vw; height: 84%; opacity: .34; }
+  .scene-background__textile { top: 8%; width: 92vw; height: 84%; opacity: .42; }
   .scene-copy h1 { font-size: clamp(55px, 17vw, 95px); }
   .scene-description { margin-top: 20px; }
   .chapter-copy { left: 17px; bottom: 17%; width: 145px; }

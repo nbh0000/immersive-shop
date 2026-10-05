@@ -532,8 +532,8 @@ function App() {
         x: clamp(pointX, 2, 98),
         y: clamp(pointY, 2, 98),
         time: now,
-        life: 6500 + pseudoRandom(pointSeed + 4.6) * 500,
-        hold: 3200 + pseudoRandom(pointSeed + 6.2) * 600,
+        life: 1900 + pseudoRandom(pointSeed + 4.6) * 300,
+        hold: 800 + pseudoRandom(pointSeed + 6.2) * 150,
         seed: pointSeed,
         width,
         height,
@@ -573,7 +573,7 @@ function App() {
       }
 
       pointerRevealAnchorRef.current = { x, y };
-      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-140);
+      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-112);
     }
     pointerMotionRef.current.targetX = (x - 50) * 1.45;
     pointerMotionRef.current.targetY = (y - 50) * 0.95;
