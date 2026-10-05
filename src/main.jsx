@@ -261,6 +261,7 @@ function ProductMedia({ product, side, style, onOpen }) {
         ) : (
           <ProductObject tone={product.tone} />
         )}
+        <div className="product-media__ink" aria-hidden="true" />
         <div className="product-media__line" />
       </button>
       <div className="product-media__caption">
@@ -663,7 +664,7 @@ function App() {
               const zIndex = Math.round(20 - distance * 4);
               const translateY = offset * 7;
               return (
-                <div className="product-stage__item" key={product.id} style={{ opacity, transform: `translate3d(0, ${translateY}%, 0) scale(${scale})`, zIndex }}>
+                <div className={`product-stage__item ${index === activeIndex ? 'is-active' : ''}`} key={product.id} style={{ opacity, transform: `translate3d(0, ${translateY}%, 0) scale(${scale})`, zIndex }}>
                   <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
                   <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
                 </div>
