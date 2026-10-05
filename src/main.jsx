@@ -360,6 +360,7 @@ function App() {
   const pointerMotionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   const pointerRevealTrailRef = useRef([]);
   const pointerRevealAnchorRef = useRef(null);
+  const pointerRevealLastSampleRef = useRef(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [pointerActive, setPointerActive] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -531,8 +532,8 @@ function App() {
         x: clamp(pointX, 2, 98),
         y: clamp(pointY, 2, 98),
         time: now,
-        life: 7000 + pseudoRandom(pointSeed + 4.6) * 300,
-        hold: 4000 + pseudoRandom(pointSeed + 6.2) * 300,
+        life: 6500 + pseudoRandom(pointSeed + 4.6) * 500,
+        hold: 3200 + pseudoRandom(pointSeed + 6.2) * 600,
         seed: pointSeed,
         width,
         height,
@@ -541,10 +542,21 @@ function App() {
         driftX: drift?.x ?? (pseudoRandom(pointSeed + 11.8) - 0.5) * 5.4,
         driftY: drift?.y ?? (pseudoRandom(pointSeed + 14.2) - 0.5) * 5.4,
       });
+      const timeSinceLastSample = now - pointerRevealLastSampleRef.current;
+      const shouldSample = timeSinceLastSample >= 62 || distance > 5.5;
+      if (!shouldSample) {
+        pointerMotionRef.current.targetX = (x - 50) * 1.45;
+        pointerMotionRef.current.targetY = (y - 50) * 0.95;
+        schedulePointerMotion();
+        setPointerActive(true);
+        return;
+      }
+
+      pointerRevealLastSampleRef.current = now;
       const newPoints = [createRevealPoint(x, y, seed, 9.5 + speed * 3.2, 13.2 + speed * 4.8)];
 
       if (distance > 1.5) {
-        const spatterCount = 3 + Math.floor(pseudoRandom(seed * 1.7) * 2);
+        const spatterCount = distance > 3.5 ? 1 + Math.floor(pseudoRandom(seed * 1.7) * 2) : 1;
         for (let index = 0; index < spatterCount; index += 1) {
           const angle = pseudoRandom(seed + 2.8 + index * 4.3) * Math.PI * 2;
           const scatter = 1.4 + pseudoRandom(seed + 5.3 + index * 2.7) * 3.8;
@@ -561,7 +573,7 @@ function App() {
       }
 
       pointerRevealAnchorRef.current = { x, y };
-      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-20);
+      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-140);
     }
     pointerMotionRef.current.targetX = (x - 50) * 1.45;
     pointerMotionRef.current.targetY = (y - 50) * 0.95;
@@ -571,6 +583,7 @@ function App() {
 
   const handlePointerEnter = () => {
     pointerRevealAnchorRef.current = null;
+    pointerRevealLastSampleRef.current = 0;
     setPointerActive(true);
     schedulePointerMotion();
   };
@@ -609,6 +622,7 @@ function App() {
         >
           <div className="scene-background" aria-hidden="true" style={{ '--world-progress': worldProgress }}>
             <div className="scene-background__texture" />
+            <img className="scene-background__textile" src={asset('textile-wordmark-sculpture.png')} alt="" />
             <WorldTrack modifier="world-track--backdrop" progress={worldProgress} />
             <WorldTrack modifier="world-track--reveal" progress={worldProgress} />
             <div className="scene-background__veil" />
@@ -665,30 +679,6 @@ function App() {
             <span className="scene-note">THE BACKGROUND IS NEVER STILL</span>
           </div>
         </div>
-      </section>
-
-      <section id="materials" className="material-story">
-        <article className="material-panel material-panel--plaster">
-          <div className="material-panel__visual" />
-          <div className="material-panel__copy">
-            <span>THE ATELIER / 01</span>
-            <h2>Made from<br /><em>stillness.</em></h2>
-            <p>Plaster, shadow and a room built slowly enough for the eye to settle.</p>
-          </div>
-        </article>
-        <article className="material-panel material-panel--fiber">
-          <div className="material-panel__visual" />
-          <div className="material-panel__copy">
-            <span>THE FIBER / 02</span>
-            <h2>Grown into<br /><em>form.</em></h2>
-            <p>Raw textile plants become a soft vocabulary for everything we make next.</p>
-          </div>
-        </article>
-      </section>
-
-      <section id="journal" className="after-scene">
-        <span>CONTINUE THE STUDY</span>
-        <h2>More than an object.<br />A small atmosphere.</h2>
       </section>
 
       <ProductDetailOverlay
