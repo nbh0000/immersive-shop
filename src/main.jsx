@@ -354,6 +354,7 @@ function App() {
   const stickyRef = useRef(null);
   const pointerMotionFrameRef = useRef(null);
   const pointerMotionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
+  const pointerRevealTrailRef = useRef([]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [pointerActive, setPointerActive] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -410,13 +411,40 @@ function App() {
     const sticky = stickyRef.current;
     if (!sticky) return;
 
+    const now = performance.now();
+    const revealLifetime = 1150;
+    const revealPoints = pointerRevealTrailRef.current.filter((point) => now - point.time < revealLifetime);
+    pointerRevealTrailRef.current = revealPoints;
+    const revealMask = revealPoints.map((point) => {
+      const age = clamp((now - point.time) / revealLifetime);
+      const fade = Math.pow(1 - age, 1.16);
+      const wobbleX = Math.sin(now * 0.0042 + point.seed) * 0.9 * (1 - age);
+      const wobbleY = Math.cos(now * 0.0034 + point.seed * 1.3) * 0.75 * (1 - age);
+      const x = point.x + wobbleX;
+      const y = point.y + wobbleY;
+      const bleedWidth = point.width * (1.7 + age * 0.45);
+      const bleedHeight = point.height * (1.65 + age * 0.4);
+      const coreWidth = point.width * (1 + age * 0.22);
+      const coreHeight = point.height * (1 + age * 0.2);
+      return [
+        `radial-gradient(ellipse ${bleedWidth.toFixed(2)}% ${bleedHeight.toFixed(2)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.24).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.12).toFixed(3)}) 50%, transparent 100%)`,
+        `radial-gradient(ellipse ${coreWidth.toFixed(2)}% ${coreHeight.toFixed(2)}% at ${(x - 0.45).toFixed(2)}% ${(y + 0.3).toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.92).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.64).toFixed(3)}) 42%, rgba(0, 0, 0, ${(fade * 0.16).toFixed(3)}) 76%, transparent 100%)`,
+      ].join(', ');
+    }).join(', ');
+    sticky.style.setProperty(
+      '--pointer-reveal-mask',
+      revealMask || 'radial-gradient(ellipse 0% 0% at 50% 50%, transparent 0%, transparent 100%)',
+    );
+
     const motion = pointerMotionRef.current;
     motion.x += (motion.targetX - motion.x) * 0.12;
     motion.y += (motion.targetY - motion.y) * 0.12;
     sticky.querySelectorAll('.world-track').forEach((track, index) => {
       const depth = index === 0 ? 0.22 : 0.92;
-      track.style.setProperty('--pointer-shift-x', `${(motion.x * depth).toFixed(2)}px`);
-      track.style.setProperty('--pointer-shift-y', `${(motion.y * depth).toFixed(2)}px`);
+      const revealWobbleX = index === 1 ? Math.sin(now * 0.0017) * 1.2 : 0;
+      const revealWobbleY = index === 1 ? Math.cos(now * 0.0013) * 0.8 : 0;
+      track.style.setProperty('--pointer-shift-x', `${(motion.x * depth + revealWobbleX).toFixed(2)}px`);
+      track.style.setProperty('--pointer-shift-y', `${(motion.y * depth + revealWobbleY).toFixed(2)}px`);
       track.style.setProperty('--pointer-tilt', `${(motion.x * depth * 0.035).toFixed(3)}deg`);
       track.style.setProperty('--pointer-tilt-x', `${(-motion.y * depth * 0.04).toFixed(3)}deg`);
       track.style.setProperty('--pointer-tilt-y', `${(motion.x * depth * 0.04).toFixed(3)}deg`);
@@ -440,10 +468,11 @@ function App() {
     });
 
     const settling = Math.abs(motion.x) > 0.08 || Math.abs(motion.y) > 0.08;
-    if (settling) {
+    if (revealPoints.length || settling) {
       pointerMotionFrameRef.current = window.requestAnimationFrame(renderPointerMotion);
     } else {
       pointerMotionFrameRef.current = null;
+      setPointerActive(false);
     }
   };
 
@@ -481,6 +510,23 @@ function App() {
     const y = ((event.clientY - bounds.top) / bounds.height) * 100;
     event.currentTarget.style.setProperty('--pointer-x', `${x}%`);
     event.currentTarget.style.setProperty('--pointer-y', `${y}%`);
+    const now = performance.now();
+    const previous = pointerRevealTrailRef.current[pointerRevealTrailRef.current.length - 1];
+    const distance = previous ? Math.hypot(x - previous.x, y - previous.y) : Infinity;
+    if (distance > 0.7) {
+      const speed = clamp(distance / 3, 0.45, 1.7);
+      pointerRevealTrailRef.current = [
+        ...pointerRevealTrailRef.current,
+        {
+          x,
+          y,
+          time: now,
+          seed: now * 0.01,
+          width: 4.2 + speed * 1.4,
+          height: 6.8 + speed * 2.4,
+        },
+      ].slice(-9);
+    }
     pointerMotionRef.current.targetX = (x - 50) * 1.45;
     pointerMotionRef.current.targetY = (y - 50) * 0.95;
     schedulePointerMotion();
@@ -495,7 +541,6 @@ function App() {
   const handlePointerLeave = () => {
     pointerMotionRef.current.targetX = 0;
     pointerMotionRef.current.targetY = 0;
-    setPointerActive(false);
     schedulePointerMotion();
   };
 
