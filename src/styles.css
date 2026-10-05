@@ -96,7 +96,7 @@ a { text-decoration: none; }
 .scene-copy { position: absolute; z-index: 5; top: 18%; left: 50%; width: min(430px, 42vw); transform: translateX(-50%); isolation: isolate; text-align: center; pointer-events: none; }
 .eyebrow { margin: 0 0 21px; color: #9bb5ee; font: 10px 'DM Mono', monospace; letter-spacing: .16em; text-transform: uppercase; }
 .scene-copy h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; margin: -1px; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
-.scene-copy__textile-wordmark { position: relative; left: 50%; z-index: 1; display: block; width: min(540px, 46vw); height: auto; margin: 0; mix-blend-mode: normal; filter: saturate(.9) contrast(1.02); transform: translateX(calc(-50% - clamp(4px, .45vw, 7px))); }
+.scene-copy__textile-wordmark { position: relative; left: 50%; z-index: 1; display: block; width: min(540px, 46vw); height: auto; margin: 0; mix-blend-mode: normal; filter: saturate(.9) contrast(1.02); transform: translateX(-50%); }
 .scene-copy__fallback { display: none; }
 .scene-description { max-width: 235px; margin: 27px auto 0; color: rgba(220, 225, 243, .64); font-size: 11px; line-height: 1.7; }
 .chapter-copy { position: absolute; z-index: 7; left: 31px; bottom: 13%; width: 180px; pointer-events: none; }
