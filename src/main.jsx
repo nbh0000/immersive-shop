@@ -359,6 +359,7 @@ function App() {
   const pointerMotionFrameRef = useRef(null);
   const pointerMotionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
   const pointerRevealTrailRef = useRef([]);
+  const pointerRevealAnchorRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [pointerActive, setPointerActive] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -419,19 +420,25 @@ function App() {
     const revealPoints = pointerRevealTrailRef.current.filter((point) => now - point.time < point.life);
     pointerRevealTrailRef.current = revealPoints;
     const revealMask = revealPoints.map((point) => {
-      const age = clamp((now - point.time) / point.life);
-      const fade = Math.pow(1 - age, 1.16);
+      const elapsed = now - point.time;
+      const age = clamp(elapsed / point.life);
+      const fadeAge = clamp((elapsed - point.hold) / Math.max(point.life - point.hold, 1));
+      const fade = Math.pow(1 - fadeAge, 1.24);
+      const driftProgress = Math.pow(age, 0.72);
       const wobbleX = Math.sin(now * 0.0042 + point.seed) * point.wanderX * (1 - age);
       const wobbleY = Math.cos(now * 0.0034 + point.seed * 1.3) * point.wanderY * (1 - age);
-      const x = point.x + wobbleX;
-      const y = point.y + wobbleY;
-      const bleedWidth = point.width * (1.7 + age * 0.45);
-      const bleedHeight = point.height * (1.65 + age * 0.4);
-      const coreWidth = point.width * (1 + age * 0.22);
-      const coreHeight = point.height * (1 + age * 0.2);
+      const x = point.x + point.driftX * driftProgress + wobbleX;
+      const y = point.y + point.driftY * driftProgress + wobbleY;
+      const bleedWidth = point.width * (1.55 + age * 0.7);
+      const bleedHeight = point.height * (1.45 + age * 0.62);
+      const lobeWidth = point.width * (0.72 + age * 0.14);
+      const lobeHeight = point.height * (0.68 + age * 0.12);
+      const lobeX = x + point.driftY * 0.34;
+      const lobeY = y - point.driftX * 0.24;
       return [
-        `radial-gradient(ellipse ${bleedWidth.toFixed(2)}% ${bleedHeight.toFixed(2)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.24).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.12).toFixed(3)}) 50%, transparent 100%)`,
-        `radial-gradient(ellipse ${coreWidth.toFixed(2)}% ${coreHeight.toFixed(2)}% at ${(x - 0.45).toFixed(2)}% ${(y + 0.3).toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.92).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.64).toFixed(3)}) 42%, rgba(0, 0, 0, ${(fade * 0.16).toFixed(3)}) 76%, transparent 100%)`,
+        `radial-gradient(ellipse ${bleedWidth.toFixed(2)}% ${bleedHeight.toFixed(2)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.34).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.14).toFixed(3)}) 53%, transparent 100%)`,
+        `radial-gradient(ellipse ${lobeWidth.toFixed(2)}% ${lobeHeight.toFixed(2)}% at ${lobeX.toFixed(2)}% ${lobeY.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.9).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.58).toFixed(3)}) 46%, transparent 100%)`,
+        `radial-gradient(ellipse ${(lobeWidth * 0.58).toFixed(2)}% ${(lobeHeight * 0.76).toFixed(2)}% at ${(x - point.driftY * 0.28).toFixed(2)}% ${(y + point.driftX * 0.2).toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.66).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.24).toFixed(3)}) 52%, transparent 100%)`,
       ].join(', ');
     }).join(', ');
     sticky.style.setProperty(
@@ -514,37 +521,46 @@ function App() {
     event.currentTarget.style.setProperty('--pointer-x', `${x}%`);
     event.currentTarget.style.setProperty('--pointer-y', `${y}%`);
     const now = performance.now();
-    const previous = pointerRevealTrailRef.current[pointerRevealTrailRef.current.length - 1];
+    const previous = pointerRevealAnchorRef.current;
     const distance = previous ? Math.hypot(x - previous.x, y - previous.y) : Infinity;
     if (distance > 0.7) {
       const speed = clamp(distance / 3, 0.45, 1.7);
       const seed = now * 0.01;
-      const createRevealPoint = (pointX, pointY, pointSeed, width, height) => ({
+      const createRevealPoint = (pointX, pointY, pointSeed, width, height, drift) => ({
         x: clamp(pointX, 2, 98),
         y: clamp(pointY, 2, 98),
         time: now,
-        life: 2200 + pseudoRandom(pointSeed + 4.6) * 800,
+        life: 3000 + pseudoRandom(pointSeed + 4.6) * 400,
+        hold: 450 + pseudoRandom(pointSeed + 6.2) * 350,
         seed: pointSeed,
         width,
         height,
         wanderX: 0.7 + pseudoRandom(pointSeed + 7.1) * 1.9,
         wanderY: 0.55 + pseudoRandom(pointSeed + 9.4) * 1.6,
+        driftX: drift?.x ?? (pseudoRandom(pointSeed + 11.8) - 0.5) * 5.4,
+        driftY: drift?.y ?? (pseudoRandom(pointSeed + 14.2) - 0.5) * 5.4,
       });
-      const newPoints = [createRevealPoint(x, y, seed, 4.2 + speed * 1.4, 6.8 + speed * 2.4)];
+      const newPoints = [createRevealPoint(x, y, seed, 7.2 + speed * 2.4, 10.5 + speed * 3.8)];
 
-      if (distance > 2.2 && pseudoRandom(seed * 1.7) > 0.56) {
-        const angle = pseudoRandom(seed + 2.8) * Math.PI * 2;
-        const scatter = 3.2 + pseudoRandom(seed + 5.3) * 8.4;
-        newPoints.push(createRevealPoint(
-          x + Math.cos(angle) * scatter,
-          y + Math.sin(angle) * scatter,
-          seed + 12.4,
-          2.4 + pseudoRandom(seed + 6.7) * 1.9,
-          3.8 + pseudoRandom(seed + 8.8) * 2.8,
-        ));
+      if (distance > 1.5) {
+        const spatterCount = 3 + Math.floor(pseudoRandom(seed * 1.7) * 2);
+        for (let index = 0; index < spatterCount; index += 1) {
+          const angle = pseudoRandom(seed + 2.8 + index * 4.3) * Math.PI * 2;
+          const scatter = 1.4 + pseudoRandom(seed + 5.3 + index * 2.7) * 3.8;
+          const spread = 7 + pseudoRandom(seed + 10.1 + index * 3.6) * 8;
+          newPoints.push(createRevealPoint(
+            x + Math.cos(angle) * scatter,
+            y + Math.sin(angle) * scatter,
+            seed + 12.4 + index * 9.2,
+            3.2 + pseudoRandom(seed + 6.7 + index) * 3,
+            5 + pseudoRandom(seed + 8.8 + index) * 4.5,
+            { x: Math.cos(angle) * spread, y: Math.sin(angle) * spread },
+          ));
+        }
       }
 
-      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-14);
+      pointerRevealAnchorRef.current = { x, y };
+      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-20);
     }
     pointerMotionRef.current.targetX = (x - 50) * 1.45;
     pointerMotionRef.current.targetY = (y - 50) * 0.95;
@@ -553,6 +569,7 @@ function App() {
   };
 
   const handlePointerEnter = () => {
+    pointerRevealAnchorRef.current = null;
     setPointerActive(true);
     schedulePointerMotion();
   };
@@ -608,9 +625,12 @@ function App() {
           </div>
 
           <div className="scene-copy">
-            <p className="eyebrow">WHERE / WARE / WEAR</p>
-            <h1>Objects<br /><em>in motion.</em></h1>
-            <p className="scene-description">A slow collection of useful forms, shaped by light, weight and the space between.</p>
+            <h1 aria-label="Where Ware Wear Here">
+              <span>Where</span>
+              <span>Ware</span>
+              <span>Wear</span>
+              <span>Here</span>
+            </h1>
           </div>
 
           <div className="chapter-copy">
@@ -634,18 +654,6 @@ function App() {
                 </div>
               );
             })}
-          </div>
-
-          <div className="scene-center">
-            <div className="scene-center__orb" style={{ '--orb-accent': activeProduct.accent }}>
-              <div className="scene-center__orb-core" />
-              <div className="scene-center__orb-ring scene-center__orb-ring--one" />
-              <div className="scene-center__orb-ring scene-center__orb-ring--two" />
-            </div>
-            <div className="scene-center__meta">
-              <span>{activeProduct.id} / 05</span>
-              <span>{activeProduct.price}</span>
-            </div>
           </div>
 
           <div className="scene-footer">
