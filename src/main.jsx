@@ -291,6 +291,32 @@ function ProductMedia({ product, side, style, onOpen }) {
   );
 }
 
+function ShopGridCard({ product, index, onOpen }) {
+  const isPhoto = Boolean(product.image);
+  const content = (
+    <>
+      <div className="shop-grid-card__meta">
+        <span>{product.category}</span>
+        <span>{String(index + 1).padStart(2, '0')} / 06</span>
+      </div>
+      <div className="shop-grid-card__visual">
+        {isPhoto ? <img src={product.image} alt={`${product.name} product photograph`} /> : <ProductObject tone={product.tone} />}
+      </div>
+      <div className="shop-grid-card__line" />
+    </>
+  );
+
+  return (
+    <article className={`shop-grid-card ${isPhoto ? 'is-clickable' : ''}`} style={{ '--grid-delay': `${index * -0.7}s`, '--grid-tilt': `${index % 2 ? 1.4 : -1.2}deg`, '--product-accent': product.accent }}>
+      {isPhoto ? <button type="button" className="shop-grid-card__surface" onClick={() => onOpen(product)} aria-label={`Open ${product.name} details`}>{content}</button> : <div className="shop-grid-card__surface">{content}</div>}
+      <div className="shop-grid-card__caption">
+        <strong>{product.name}</strong>
+        <span>{product.material}</span>
+      </div>
+    </article>
+  );
+}
+
 function WorldTrack({ modifier = '', progress }) {
   return (
     <div className={`world-track-viewport ${modifier}`} aria-hidden="true">
@@ -399,6 +425,7 @@ function App() {
   const [bagCount, setBagCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuView, setMenuView] = useState('root');
+  const [shopGridOpen, setShopGridOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedProduct) return undefined;
@@ -417,6 +444,7 @@ function App() {
         setSelectedProduct(null);
         setMenuOpen(false);
         setMenuView('root');
+        setShopGridOpen(false);
       }
     };
     window.addEventListener('keydown', handleEscape);
@@ -424,6 +452,7 @@ function App() {
   }, []);
 
   const openProduct = (product) => {
+    setShopGridOpen(false);
     setSelectedProduct(product);
     setSelectedSize(product.sizes?.[1] || product.sizes?.[0] || 'M');
     setCheckoutStep('detail');
@@ -464,6 +493,7 @@ function App() {
 
   const openObjectsFromMenu = () => {
     closeMenu();
+    setShopGridOpen(true);
     document.getElementById('objects')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
@@ -660,7 +690,7 @@ function App() {
       <header className="site-header">
         <a className="brand-mark" href="#top" aria-label="Drift Objects home">DRIFT<span>°</span></a>
         <nav className="site-nav" aria-label="Primary navigation">
-          <a href="#objects">Objects</a>
+          <a href="#objects" onClick={(event) => { event.preventDefault(); setShopGridOpen(true); }}>Objects</a>
           <a href="#journal">Journal</a>
           <button type="button" className="bag-button" onClick={() => selectedProduct ? setCheckoutStep('checkout') : openProduct(products[0])}>Bag <span>{bagCount}</span></button>
           <div className="utility-menu">
@@ -707,7 +737,7 @@ function App() {
       <section id="top" ref={sceneRef} className="immersive-scene" style={{ '--product-count': products.length }}>
         <div
           ref={stickyRef}
-          className={`scene-sticky ${pointerActive ? 'has-pointer' : ''}`}
+          className={`scene-sticky ${pointerActive ? 'has-pointer' : ''} ${shopGridOpen ? 'is-shop-grid' : ''}`}
           onPointerMove={handlePointerMove}
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}
@@ -760,6 +790,19 @@ function App() {
               );
             })}
           </div>
+
+          <section className="shop-grid-view" aria-label="All objects">
+            <div className="shop-grid-view__head">
+              <div>
+                <span>OBJECTS / 06</span>
+                <h2>Everything<br /><em>in the room.</em></h2>
+              </div>
+              <button type="button" onClick={() => setShopGridOpen(false)}>Back to study <span>×</span></button>
+            </div>
+            <div className="shop-grid-view__grid">
+              {products.map((product, index) => <ShopGridCard key={product.id} product={product} index={index} onOpen={openProduct} />)}
+            </div>
+          </section>
 
           <div className="scene-footer">
             <div className="scroll-cue"><span>SCROLL TO DRIFT</span><i /></div>
