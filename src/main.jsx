@@ -34,6 +34,10 @@ const chapters = [
 const panoramaTiles = Array.from({ length: 5 }, (_, index) => asset(`panorama/panorama-${String(index + 1).padStart(2, '0')}.webp`));
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+const pseudoRandom = (seed) => {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+};
 
 function AtmosphereCanvas() {
   const canvasRef = useRef(null);
@@ -412,14 +416,13 @@ function App() {
     if (!sticky) return;
 
     const now = performance.now();
-    const revealLifetime = 1150;
-    const revealPoints = pointerRevealTrailRef.current.filter((point) => now - point.time < revealLifetime);
+    const revealPoints = pointerRevealTrailRef.current.filter((point) => now - point.time < point.life);
     pointerRevealTrailRef.current = revealPoints;
     const revealMask = revealPoints.map((point) => {
-      const age = clamp((now - point.time) / revealLifetime);
+      const age = clamp((now - point.time) / point.life);
       const fade = Math.pow(1 - age, 1.16);
-      const wobbleX = Math.sin(now * 0.0042 + point.seed) * 0.9 * (1 - age);
-      const wobbleY = Math.cos(now * 0.0034 + point.seed * 1.3) * 0.75 * (1 - age);
+      const wobbleX = Math.sin(now * 0.0042 + point.seed) * point.wanderX * (1 - age);
+      const wobbleY = Math.cos(now * 0.0034 + point.seed * 1.3) * point.wanderY * (1 - age);
       const x = point.x + wobbleX;
       const y = point.y + wobbleY;
       const bleedWidth = point.width * (1.7 + age * 0.45);
@@ -515,17 +518,33 @@ function App() {
     const distance = previous ? Math.hypot(x - previous.x, y - previous.y) : Infinity;
     if (distance > 0.7) {
       const speed = clamp(distance / 3, 0.45, 1.7);
-      pointerRevealTrailRef.current = [
-        ...pointerRevealTrailRef.current,
-        {
-          x,
-          y,
-          time: now,
-          seed: now * 0.01,
-          width: 4.2 + speed * 1.4,
-          height: 6.8 + speed * 2.4,
-        },
-      ].slice(-9);
+      const seed = now * 0.01;
+      const createRevealPoint = (pointX, pointY, pointSeed, width, height) => ({
+        x: clamp(pointX, 2, 98),
+        y: clamp(pointY, 2, 98),
+        time: now,
+        life: 2200 + pseudoRandom(pointSeed + 4.6) * 800,
+        seed: pointSeed,
+        width,
+        height,
+        wanderX: 0.7 + pseudoRandom(pointSeed + 7.1) * 1.9,
+        wanderY: 0.55 + pseudoRandom(pointSeed + 9.4) * 1.6,
+      });
+      const newPoints = [createRevealPoint(x, y, seed, 4.2 + speed * 1.4, 6.8 + speed * 2.4)];
+
+      if (distance > 2.2 && pseudoRandom(seed * 1.7) > 0.56) {
+        const angle = pseudoRandom(seed + 2.8) * Math.PI * 2;
+        const scatter = 3.2 + pseudoRandom(seed + 5.3) * 8.4;
+        newPoints.push(createRevealPoint(
+          x + Math.cos(angle) * scatter,
+          y + Math.sin(angle) * scatter,
+          seed + 12.4,
+          2.4 + pseudoRandom(seed + 6.7) * 1.9,
+          3.8 + pseudoRandom(seed + 8.8) * 2.8,
+        ));
+      }
+
+      pointerRevealTrailRef.current = [...pointerRevealTrailRef.current, ...newPoints].slice(-14);
     }
     pointerMotionRef.current.targetX = (x - 50) * 1.45;
     pointerMotionRef.current.targetY = (y - 50) * 0.95;
