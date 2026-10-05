@@ -241,7 +241,7 @@ function ProductObject({ tone }) {
   );
 }
 
-function ProductMedia({ product, side, style, onOpen, isActive = false }) {
+function ProductMedia({ product, side, style, onOpen }) {
   return (
     <article className={`product-media product-media--${side} ${product.image ? 'product-media--static' : ''}`} style={style}>
       <button
@@ -261,7 +261,7 @@ function ProductMedia({ product, side, style, onOpen, isActive = false }) {
         ) : (
           <ProductObject tone={product.tone} />
         )}
-        {isActive && <video className="product-media__ink" src={asset('ink-bloom-reveal.mp4')} autoPlay muted playsInline aria-hidden="true" />}
+        {product.image && side === 'left' && <img className="product-media__click-cue" src={asset('click-cue.png')} alt="" aria-hidden="true" />}
         <div className="product-media__line" />
       </button>
       <div className="product-media__caption">
@@ -369,6 +369,8 @@ function App() {
   const [checkoutStep, setCheckoutStep] = useState('detail');
   const [selectedSize, setSelectedSize] = useState('M');
   const [bagCount, setBagCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuView, setMenuView] = useState('root');
 
   useEffect(() => {
     if (!selectedProduct) return undefined;
@@ -383,7 +385,11 @@ function App() {
 
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === 'Escape') setSelectedProduct(null);
+      if (event.key === 'Escape') {
+        setSelectedProduct(null);
+        setMenuOpen(false);
+        setMenuView('root');
+      }
     };
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
@@ -412,6 +418,25 @@ function App() {
   const submitCheckout = (event) => {
     event.preventDefault();
     setCheckoutStep('complete');
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setMenuView('root');
+  };
+
+  const openBagFromMenu = () => {
+    closeMenu();
+    if (selectedProduct) {
+      setCheckoutStep('checkout');
+    } else {
+      openProduct(products[0]);
+    }
+  };
+
+  const openObjectsFromMenu = () => {
+    closeMenu();
+    document.getElementById('objects')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
   const renderPointerMotion = () => {
@@ -610,6 +635,44 @@ function App() {
           <a href="#objects">Objects</a>
           <a href="#journal">Journal</a>
           <button type="button" className="bag-button" onClick={() => selectedProduct ? setCheckoutStep('checkout') : openProduct(products[0])}>Bag <span>{bagCount}</span></button>
+          <div className="utility-menu">
+            <button type="button" className="utility-menu__toggle" aria-expanded={menuOpen} aria-controls="commerce-menu" onClick={() => { setMenuOpen((open) => !open); setMenuView('root'); }}>
+              Menu <span>{menuOpen ? '-' : '+'}</span>
+            </button>
+            {menuOpen && (
+              <div id="commerce-menu" className="utility-menu__panel" role="dialog" aria-label="Shopping menu">
+                <div className="utility-menu__head">
+                  <span>COMMERCE / 01</span>
+                  <button type="button" onClick={closeMenu}>Close x</button>
+                </div>
+                {menuView === 'root' ? (
+                  <div className="utility-menu__links">
+                    <button type="button" onClick={openObjectsFromMenu}><span>Shop all objects</span><small>01 - 05</small></button>
+                    <button type="button" onClick={openBagFromMenu}><span>Your bag</span><small>{bagCount} item{bagCount === 1 ? '' : 's'}</small></button>
+                    <button type="button" onClick={() => setMenuView('size')}><span>Size guide</span><small>FIT / 01</small></button>
+                    <button type="button" onClick={() => setMenuView('delivery')}><span>Delivery & returns</span><small>STUDIO TERMS</small></button>
+                  </div>
+                ) : (
+                  <div className="utility-menu__info">
+                    <button type="button" className="utility-menu__back" onClick={() => setMenuView('root')}>&lt;- Back</button>
+                    {menuView === 'size' ? (
+                      <>
+                        <h2>Find your<br /><em>quiet fit.</em></h2>
+                        <p>Our knitwear is cut relaxed. Choose your usual size for an easy layer, or size down for a closer line.</p>
+                        <span className="utility-menu__note">S / M / L - UNISEX FIT</span>
+                      </>
+                    ) : (
+                      <>
+                        <h2>Made slowly.<br /><em>Sent softly.</em></h2>
+                        <p>Studio delivery is complimentary. Returns are accepted within 14 days of arrival.</p>
+                        <span className="utility-menu__note">SEOUL STUDIO - WORLDWIDE</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </nav>
       </header>
 
@@ -640,8 +703,8 @@ function App() {
           </div>
 
           <div className="scene-copy">
-            <h1 className="scene-copy__accessible-title">Where Ware Wear Here</h1>
-            <img className="scene-copy__textile-wordmark" src={asset('textile-where-ware-wear-here.png')} alt="" aria-hidden="true" />
+            <h1 className="scene-copy__accessible-title">Wear Ware Where Here</h1>
+            <img className="scene-copy__textile-wordmark" src={asset('textile-wear-ware-where-here-cutout.png')} alt="" aria-hidden="true" />
             <span className="scene-copy__fallback" aria-hidden="true">
               <span>Where</span>
               <span>Ware</span>
@@ -666,8 +729,8 @@ function App() {
               const translateY = offset * 7;
               return (
                 <div className={`product-stage__item ${index === activeIndex ? 'is-active' : ''}`} key={product.id} style={{ opacity, transform: `translate3d(0, ${translateY}%, 0) scale(${scale})`, zIndex }}>
-                  <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} isActive={index === activeIndex} />
-                  <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} isActive={index === activeIndex} />
+                  <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
+                  <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
                 </div>
               );
             })}
