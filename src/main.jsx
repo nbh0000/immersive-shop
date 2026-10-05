@@ -19,10 +19,27 @@ const products = [
     details: ['Camel brown knit', 'Ribbed collar, cuff and hem', 'Relaxed unisex fit'],
     sizes: ['S', 'M', 'L'],
   },
-  { id: '02', name: 'Nacre Form', category: 'OBJECT / 02', material: 'pearl resin', accent: '#f4c8bd', tone: 'rose', price: '₩ 312,000' },
-  { id: '03', name: 'Nocturne Arc', category: 'OBJECT / 03', material: 'black chrome', accent: '#d6d9e6', tone: 'silver', price: '₩ 428,000' },
-  { id: '04', name: 'Morrow Vessel', category: 'OBJECT / 04', material: 'warm ceramic', accent: '#eab58a', tone: 'amber', price: '₩ 186,000' },
-  { id: '05', name: 'Solace Fold', category: 'OBJECT / 05', material: 'soft metal', accent: '#b8d8c9', tone: 'mint', price: '₩ 274,000' },
+  {
+    id: '02',
+    name: 'Heritage V-Neck',
+    category: 'KNIT / 02',
+    material: 'cable cotton knit',
+    accent: '#7d6a77',
+    tone: 'rose',
+    price: 'KRW 168,000',
+    image: asset('cream-v-neck-knit.png'),
+    modelImage: asset('cream-v-neck-knit-model.png'),
+    detailImages: [asset('cream-v-neck-knit-detail.png')],
+    photoSide: 'right',
+    description: 'A soft cable-knit V-neck finished with collegiate stripes and an easy, generous line.',
+    details: ['Cream cotton cable knit', 'Navy and burgundy rib trim', 'Relaxed unisex fit'],
+    measurements: { Length: '68', Shoulder: '52', Chest: '60', Sleeve: '57' },
+    sizes: ['S', 'M', 'L'],
+  },
+  { id: '03', name: 'Nacre Form', category: 'OBJECT / 03', material: 'pearl resin', accent: '#f4c8bd', tone: 'rose', price: 'KRW 312,000' },
+  { id: '04', name: 'Nocturne Arc', category: 'OBJECT / 04', material: 'black chrome', accent: '#d6d9e6', tone: 'silver', price: 'KRW 428,000' },
+  { id: '05', name: 'Morrow Vessel', category: 'OBJECT / 05', material: 'warm ceramic', accent: '#eab58a', tone: 'amber', price: 'KRW 186,000' },
+  { id: '06', name: 'Solace Fold', category: 'OBJECT / 06', material: 'soft metal', accent: '#b8d8c9', tone: 'mint', price: 'KRW 274,000' },
 ];
 
 const chapters = [
@@ -242,8 +259,10 @@ function ProductObject({ tone }) {
 }
 
 function ProductMedia({ product, side, style, onOpen }) {
+  const isPhoto = Boolean(product.image && (product.photoSide ? product.photoSide === side : side === 'left'));
+
   return (
-    <article className={`product-media product-media--${side} ${product.image ? 'product-media--static' : ''}`} style={style}>
+    <article className={`product-media product-media--${side} ${isPhoto ? 'product-media--static product-media--photo' : ''}`} style={style}>
       <button
         type="button"
         className={`product-media__frame ${product.image ? 'is-clickable' : ''}`}
@@ -256,12 +275,12 @@ function ProductMedia({ product, side, style, onOpen }) {
           <span>{product.category}</span>
           <span>{side === 'left' ? 'MOTION STUDY' : 'DETAIL / 360'}</span>
         </div>
-        {product.image && side === 'left' ? (
+        {isPhoto ? (
           <img className="product-media__photo" src={product.image} alt={`${product.name} product photograph`} />
         ) : (
           <ProductObject tone={product.tone} />
         )}
-        {product.image && side === 'left' && <img className="product-media__click-cue" src={asset('click-cue.png')} alt="" aria-hidden="true" />}
+        {isPhoto && <img className="product-media__click-cue" src={asset('click-cue.png')} alt="" aria-hidden="true" />}
         <div className="product-media__line" />
       </button>
       <div className="product-media__caption">
@@ -301,10 +320,13 @@ function ProductDetailOverlay({ product, detailReady, checkoutStep, selectedSize
           <div className="product-detail__product-echo">
             <img src={product.image} alt="" />
           </div>
-          <img className="product-detail__model" src={product.modelImage} alt={`${product.name} worn by a model`} />
+          <div className="product-detail__model-gallery">
+            <img className="product-detail__model" src={product.modelImage} alt={`${product.name} worn by a model`} />
+            {product.detailImages?.map((image, index) => <img className="product-detail__detail-shot" key={image} src={image} alt={`${product.name} detail view ${index + 1}`} />)}
+          </div>
           <div className="product-detail__visual-meta">
-            <span>THE OBJECT / 01</span>
-            <span>WORN STUDY</span>
+            <span>{product.category}</span>
+            <span>WORN STUDY / {product.id}</span>
           </div>
         </div>
 
@@ -332,7 +354,7 @@ function ProductDetailOverlay({ product, detailReady, checkoutStep, selectedSize
             </div>
           ) : (
             <div className="product-detail__content">
-              <span className="product-detail__kicker">KNIT / 01 — PLAY</span>
+              <span className="product-detail__kicker">{product.category} — {product.name.toUpperCase()}</span>
               <h2>{product.name.split(' ')[0]}<br /><em>{product.name.split(' ').slice(1).join(' ')}.</em></h2>
               <p className="product-detail__description">{product.description}</p>
               <div className="product-detail__price-row"><strong>{product.price}</strong><span>MADE TO ORDER / 04 AVAILABLE</span></div>
@@ -341,6 +363,12 @@ function ProductDetailOverlay({ product, detailReady, checkoutStep, selectedSize
                 <div>{product.sizes.map((size) => <button key={size} type="button" className={selectedSize === size ? 'is-selected' : ''} onClick={() => onSizeChange(size)}>{size}</button>)}</div>
               </div>
               <ul className="product-detail__details">{product.details.map((detail) => <li key={detail}>{detail}</li>)}</ul>
+              {product.measurements && (
+                <div className="product-detail__measurements">
+                  <span>GARMENT MEASUREMENTS / CM</span>
+                  <dl>{Object.entries(product.measurements).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+                </div>
+              )}
               <div className="product-detail__actions">
                 <button className="product-detail__primary" type="button" onClick={onStartCheckout}>Buy now <span>→</span></button>
                 <button className="product-detail__secondary" type="button" onClick={onAddToBag}>Add to bag</button>
@@ -647,7 +675,7 @@ function App() {
                 </div>
                 {menuView === 'root' ? (
                   <div className="utility-menu__links">
-                    <button type="button" onClick={openObjectsFromMenu}><span>Shop all objects</span><small>01 - 05</small></button>
+                    <button type="button" onClick={openObjectsFromMenu}><span>Shop all objects</span><small>01 - 06</small></button>
                     <button type="button" onClick={openBagFromMenu}><span>Your bag</span><small>{bagCount} item{bagCount === 1 ? '' : 's'}</small></button>
                     <button type="button" onClick={() => setMenuView('size')}><span>Size guide</span><small>FIT / 01</small></button>
                     <button type="button" onClick={() => setMenuView('delivery')}><span>Delivery & returns</span><small>STUDIO TERMS</small></button>
@@ -706,9 +734,9 @@ function App() {
             <h1 className="scene-copy__accessible-title">Wear Ware Where Here</h1>
             <img className="scene-copy__textile-wordmark" src={asset('textile-wear-ware-where-here-cutout.png')} alt="" aria-hidden="true" />
             <span className="scene-copy__fallback" aria-hidden="true">
-              <span>Where</span>
-              <span>Ware</span>
               <span>Wear</span>
+              <span>Ware</span>
+              <span>Where</span>
               <span>Here</span>
             </span>
           </div>
@@ -738,7 +766,7 @@ function App() {
 
           <div className="scene-footer">
             <div className="scroll-cue"><span>SCROLL TO DRIFT</span><i /></div>
-            <div className="scene-progress" aria-label={`Showing product ${activeProduct.id} of 05`}>
+            <div className="scene-progress" aria-label={`Showing product ${activeProduct.id} of ${products.length}`}>
               {products.map((product, index) => <span className={index === activeIndex ? 'is-active' : ''} key={product.id}>{product.id}</span>)}
             </div>
             <span className="scene-note">THE BACKGROUND IS NEVER STILL</span>
