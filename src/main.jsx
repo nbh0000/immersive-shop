@@ -423,22 +423,25 @@ function App() {
       const elapsed = now - point.time;
       const age = clamp(elapsed / point.life);
       const fadeAge = clamp((elapsed - point.hold) / Math.max(point.life - point.hold, 1));
-      const fade = Math.pow(1 - fadeAge, 1.24);
+      const fade = 1 - Math.pow(fadeAge, 1.45);
       const driftProgress = Math.pow(age, 0.72);
       const wobbleX = Math.sin(now * 0.0042 + point.seed) * point.wanderX * (1 - age);
       const wobbleY = Math.cos(now * 0.0034 + point.seed * 1.3) * point.wanderY * (1 - age);
       const x = point.x + point.driftX * driftProgress + wobbleX;
       const y = point.y + point.driftY * driftProgress + wobbleY;
-      const bleedWidth = point.width * (1.55 + age * 0.7);
-      const bleedHeight = point.height * (1.45 + age * 0.62);
-      const lobeWidth = point.width * (0.72 + age * 0.14);
-      const lobeHeight = point.height * (0.68 + age * 0.12);
+      const bleedWidth = point.width * (1.8 + age * 0.9);
+      const bleedHeight = point.height * (1.68 + age * 0.8);
+      const lobeWidth = point.width * (0.82 + age * 0.16);
+      const lobeHeight = point.height * (0.78 + age * 0.14);
       const lobeX = x + point.driftY * 0.34;
       const lobeY = y - point.driftX * 0.24;
+      const companionX = x + Math.sin(now * 0.00125 + point.seed * 1.7) * (8 + point.wanderX) + point.driftX * 0.55;
+      const companionY = y + Math.cos(now * 0.00105 + point.seed * 1.2) * (6 + point.wanderY) + point.driftY * 0.55;
       return [
         `radial-gradient(ellipse ${bleedWidth.toFixed(2)}% ${bleedHeight.toFixed(2)}% at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.34).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.14).toFixed(3)}) 53%, transparent 100%)`,
         `radial-gradient(ellipse ${lobeWidth.toFixed(2)}% ${lobeHeight.toFixed(2)}% at ${lobeX.toFixed(2)}% ${lobeY.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.9).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.58).toFixed(3)}) 46%, transparent 100%)`,
         `radial-gradient(ellipse ${(lobeWidth * 0.58).toFixed(2)}% ${(lobeHeight * 0.76).toFixed(2)}% at ${(x - point.driftY * 0.28).toFixed(2)}% ${(y + point.driftX * 0.2).toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.66).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.24).toFixed(3)}) 52%, transparent 100%)`,
+        `radial-gradient(ellipse ${(bleedWidth * 0.9).toFixed(2)}% ${(bleedHeight * 0.9).toFixed(2)}% at ${companionX.toFixed(2)}% ${companionY.toFixed(2)}%, rgba(0, 0, 0, ${(fade * 0.56).toFixed(3)}) 0%, rgba(0, 0, 0, ${(fade * 0.18).toFixed(3)}) 58%, transparent 100%)`,
       ].join(', ');
     }).join(', ');
     sticky.style.setProperty(
@@ -450,11 +453,9 @@ function App() {
     motion.x += (motion.targetX - motion.x) * 0.12;
     motion.y += (motion.targetY - motion.y) * 0.12;
     sticky.querySelectorAll('.world-track').forEach((track, index) => {
-      const depth = index === 0 ? 0.22 : 0.92;
-      const revealWobbleX = index === 1 ? Math.sin(now * 0.0017) * 1.2 : 0;
-      const revealWobbleY = index === 1 ? Math.cos(now * 0.0013) * 0.8 : 0;
-      track.style.setProperty('--pointer-shift-x', `${(motion.x * depth + revealWobbleX).toFixed(2)}px`);
-      track.style.setProperty('--pointer-shift-y', `${(motion.y * depth + revealWobbleY).toFixed(2)}px`);
+      const depth = index === 1 ? 0 : 0.22;
+      track.style.setProperty('--pointer-shift-x', `${(motion.x * depth).toFixed(2)}px`);
+      track.style.setProperty('--pointer-shift-y', `${(motion.y * depth).toFixed(2)}px`);
       track.style.setProperty('--pointer-tilt', `${(motion.x * depth * 0.035).toFixed(3)}deg`);
       track.style.setProperty('--pointer-tilt-x', `${(-motion.y * depth * 0.04).toFixed(3)}deg`);
       track.style.setProperty('--pointer-tilt-y', `${(motion.x * depth * 0.04).toFixed(3)}deg`);
@@ -530,8 +531,8 @@ function App() {
         x: clamp(pointX, 2, 98),
         y: clamp(pointY, 2, 98),
         time: now,
-        life: 7000 + pseudoRandom(pointSeed + 4.6) * 1000,
-        hold: 4000 + pseudoRandom(pointSeed + 6.2) * 800,
+        life: 7000 + pseudoRandom(pointSeed + 4.6) * 300,
+        hold: 4000 + pseudoRandom(pointSeed + 6.2) * 300,
         seed: pointSeed,
         width,
         height,
@@ -540,7 +541,7 @@ function App() {
         driftX: drift?.x ?? (pseudoRandom(pointSeed + 11.8) - 0.5) * 5.4,
         driftY: drift?.y ?? (pseudoRandom(pointSeed + 14.2) - 0.5) * 5.4,
       });
-      const newPoints = [createRevealPoint(x, y, seed, 7.2 + speed * 2.4, 10.5 + speed * 3.8)];
+      const newPoints = [createRevealPoint(x, y, seed, 9.5 + speed * 3.2, 13.2 + speed * 4.8)];
 
       if (distance > 1.5) {
         const spatterCount = 3 + Math.floor(pseudoRandom(seed * 1.7) * 2);
@@ -552,8 +553,8 @@ function App() {
             x + Math.cos(angle) * scatter,
             y + Math.sin(angle) * scatter,
             seed + 12.4 + index * 9.2,
-            3.2 + pseudoRandom(seed + 6.7 + index) * 3,
-            5 + pseudoRandom(seed + 8.8 + index) * 4.5,
+            4 + pseudoRandom(seed + 6.7 + index) * 3.8,
+            6 + pseudoRandom(seed + 8.8 + index) * 5.6,
             { x: Math.cos(angle) * spread, y: Math.sin(angle) * spread },
           ));
         }
