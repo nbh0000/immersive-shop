@@ -749,14 +749,11 @@ function App() {
 
           <div className="product-stage" id="objects">
             {products.map((product, index) => {
-              const offset = index - stage;
-              const distance = Math.abs(offset);
-              const opacity = clamp(1 - distance * 1.25, 0, 1);
-              const scale = 1 - Math.min(distance, 1.3) * 0.1;
-              const zIndex = Math.round(20 - distance * 4);
-              const translateY = offset * 7;
+              const isActive = index === activeIndex;
+              const opacity = isActive ? 1 : 0;
+              const zIndex = isActive ? 20 : 0;
               return (
-                <div className={`product-stage__item ${index === activeIndex ? 'is-active' : ''}`} key={product.id} style={{ opacity, transform: `translate3d(0, ${translateY}%, 0) scale(${scale})`, zIndex }}>
+                <div className={`product-stage__item ${isActive ? 'is-active' : ''}`} key={product.id} style={{ opacity, transform: 'translate3d(0, 0, 0) scale(1)', zIndex, pointerEvents: isActive ? 'auto' : 'none' }}>
                   <ProductMedia product={product} side="left" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
                   <ProductMedia product={product} side="right" style={{ '--product-accent': product.accent }} onOpen={openProduct} />
                 </div>

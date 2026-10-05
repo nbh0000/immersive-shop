@@ -105,7 +105,7 @@ a { text-decoration: none; }
 .chapter-copy p { margin: 9px 0 0; color: rgba(32, 34, 41, .58); font-size: 10px; line-height: 1.65; }
 
 .product-stage { position: absolute; inset: 0; z-index: 4; pointer-events: none; perspective: 1600px; }
-.product-stage__item { position: absolute; inset: 0; transition: opacity .28s ease, transform .28s cubic-bezier(.22,.8,.24,1); transform-style: preserve-3d; }
+.product-stage__item { position: absolute; inset: 0; transition: transform .18s cubic-bezier(.23, 1, .32, 1); transform-style: preserve-3d; }
 .product-media { --pointer-media-shift-x: 0px; --pointer-media-shift-y: 0px; --pointer-rotate-x: 0deg; --pointer-rotate-y: 0deg; position: absolute; top: 50%; width: clamp(205px, 18vw, 330px); pointer-events: auto; transform-style: preserve-3d; will-change: transform; transition: transform .18s cubic-bezier(.23, 1, .32, 1); }
 .product-media--left { left: clamp(31px, 8vw, 140px); transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(14deg + var(--pointer-rotate-y))) rotateZ(-1.5deg); }
 .product-media--right { right: clamp(31px, 8vw, 140px); transform: translate3d(var(--pointer-media-shift-x), var(--pointer-media-shift-y), 0) translateY(-50%) rotateX(var(--pointer-rotate-x)) rotateY(calc(-14deg + var(--pointer-rotate-y))) rotateZ(1.5deg); }
